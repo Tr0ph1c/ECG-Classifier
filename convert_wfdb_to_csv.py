@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-
 mitbih_base_path = 'mit-bih'
 
 def record_path(record_name: str) -> str:
@@ -36,20 +35,24 @@ def is_file_exists(file_path: str) -> bool:
     
 def shoud_skip_last_peak(last_r_signal_index, last_peak_index) -> bool:
     return last_r_signal_index + 45 > last_peak_index
-    
+
+def filter_beat_samples(annotations: list[str], samples: list[int]) -> list[int]:
+    return [sample for ann, sample in zip(annotations, samples) if is_beat_annotation(ann)]
+
 def get_record_peaks(record_name: str) -> pd.DataFrame:
 
     record = wfdb.rdrecord(record_path(record_name))
     record_annon = wfdb.rdann(record_path(record_name), 'atr', return_label_elements=['symbol', 'label_store'])
     
-    rr_intervals = get_rr_intervals(record_annon.sample, record.fs)
+    r_samples = filter_beat_samples(record_annon.symbol, record_annon.sample)
+    rr_intervals = get_rr_intervals(r_samples, record.fs)
     
     peaks_data = []
-    max_itr = len(record_annon.sample) - ( 1 if shoud_skip_last_peak(record_annon.sample[-1], len(record.p_signal)) else 0)
+    max_itr = len(r_samples) - ( 1 if shoud_skip_last_peak(r_samples[-1], len(record.p_signal)) else 0)
 
     for i in range(1, max_itr):
         if is_beat_annotation(record_annon.symbol[i]):
-            r_index = record_annon.sample[i]
+            r_index = r_samples[i]
             rr_interval = rr_intervals[i-1]  
             label = record_annon.symbol[i]
             peak_dict = peak_to_dict(record.p_signal[:, 0], r_index, rr_interval, label)
