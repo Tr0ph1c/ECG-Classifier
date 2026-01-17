@@ -2,6 +2,8 @@ import wfdb
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import preprocessor
+
 
 mitbih_base_path = 'mit-bih'
 
@@ -39,6 +41,7 @@ def shoud_skip_last_peak(last_r_signal_index, last_peak_index) -> bool:
 def filter_beat_samples(annotations: list[str], samples: list[int]) -> list[int]:
     return [sample for ann, sample in zip(annotations, samples) if is_beat_annotation(ann)]
 
+
 def get_record_peaks(record_name: str) -> pd.DataFrame:
 
     record = wfdb.rdrecord(record_path(record_name))
@@ -55,7 +58,8 @@ def get_record_peaks(record_name: str) -> pd.DataFrame:
             r_index = r_samples[i]
             rr_interval = rr_intervals[i-1]  
             label = record_annon.symbol[i]
-            peak_dict = peak_to_dict(record.p_signal[:, 0], r_index, rr_interval, label)
+            filtered_ecg = preprocessor.filter_ecg(record.p_signal[:, 0], record.fs)
+            peak_dict = peak_to_dict(filtered_ecg, r_index, rr_interval, label)
             peaks_data.append(peak_dict)
     
     return pd.DataFrame(peaks_data)
@@ -63,7 +67,8 @@ def get_record_peaks(record_name: str) -> pd.DataFrame:
 def convert_wfdb_to_csv(output_csv: str, record_names: list[str]):
     all_peaks_df = pd.DataFrame()
     
-    for record_name in record_names:
+    for i, record_name in enumerate(record_names):
+        print(f'Processing record {i+1}/{len(record_names)}: {record_name}')
         record_peaks_df = get_record_peaks(record_name)
         all_peaks_df = pd.concat([all_peaks_df, record_peaks_df], ignore_index=True)
     
