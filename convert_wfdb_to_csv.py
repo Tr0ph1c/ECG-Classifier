@@ -2,7 +2,7 @@ import wfdb
 import pandas as pd
 import numpy as np
 from pathlib import Path
-import preprocessor
+import modules.preprocessor as preprocessor
 
 
 mitbih_base_path = 'mit-bih'
@@ -50,7 +50,8 @@ def get_record_peaks(record_name: str) -> pd.DataFrame:
     r_samples = filter_beat_samples(record_annon.symbol, record_annon.sample)
     rr_intervals = get_rr_intervals(r_samples, record.fs)
 
-    filtered_ecg = preprocessor.filter_ecg(record.p_signal[:, 0], record.fs)
+    #lead2 = preprocessor.filter_ecg(record.p_signal[:, 0], record.fs)
+    lead2 = record.p_signal[:, 0]
     
     peaks_data = []
     max_itr = len(r_samples) - ( 1 if shoud_skip_last_peak(r_samples[-1], len(record.p_signal)) else 0)
@@ -60,7 +61,7 @@ def get_record_peaks(record_name: str) -> pd.DataFrame:
             r_index = r_samples[i]
             rr_interval = rr_intervals[i-1]  
             label = record_annon.symbol[i]
-            peak_dict = peak_to_dict(filtered_ecg, r_index, rr_interval, label)
+            peak_dict = peak_to_dict(lead2, r_index, rr_interval, label)
             peaks_data.append(peak_dict)
     
     return pd.DataFrame(peaks_data)
