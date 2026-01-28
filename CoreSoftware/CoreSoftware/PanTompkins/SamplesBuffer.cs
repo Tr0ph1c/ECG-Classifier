@@ -1,10 +1,10 @@
-namespace CoreSofyware.PanTompkins;
+namespace CoreSoftware.PanTompkins;
 
-internal class SamplesBuffer: IDisposable
+internal class SamplesBuffer : IDisposable
 {
     private IntPtr _handle;
     private bool _disposed;
-    
+
     public SamplesBuffer(int maxSize)
     {
         _handle = NativeSamplsBuffer.SamplesBuffer_Create(maxSize);
@@ -17,7 +17,7 @@ internal class SamplesBuffer: IDisposable
         if (appended == -1) throw new InvalidOperationException("Append failed or internal error");
         else if (appended == -2) throw new InvalidOperationException("Invalid handle");
     }
-    
+
     public int FindIndexOfMax()
     {
         ThrowIfDisposed();

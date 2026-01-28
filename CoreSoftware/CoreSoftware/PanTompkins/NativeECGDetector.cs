@@ -1,10 +1,11 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace CoreSofyware.PanTompkins;
+namespace CoreSoftware.PanTompkins;
+
 internal static class NativeECGDetector
 {
-    private const string LibName = "libDetectorPanTompkins.so"; 
+    private const string LibName = "libDetectorPanTompkins.so";
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr ECGDetector_Create(double samplingFrequencyHz);

@@ -1,6 +1,7 @@
 using System;
 
-namespace CoreSofyware.PanTompkins;
+namespace CoreSoftware.PanTompkins;
+
 public class RDetector : IDisposable
 {
     private IntPtr _handle;
@@ -24,8 +25,8 @@ public class RDetector : IDisposable
             throw new OutOfMemoryException("Failed to create ECG detector (native allocation failed)");
 
         _samplingFrequency = samplingFrequencyHz;
-        
-        _buffer = new SamplesBuffer((int) samplingFrequencyHz / 2);
+
+        _buffer = new SamplesBuffer((int)samplingFrequencyHz / 2);
     }
 
     /// <summary>
@@ -42,11 +43,11 @@ public class RDetector : IDisposable
         ThrowIfDisposed();
         _buffer.Add(sample);
         int result = NativeECGDetector.ECGDetector_ProcessSample(_handle, sample);
-        
+
         if (result == -2)
             throw new InvalidOperationException("ECG detector internal error (invalid handle or exception)");
-        
-        return (result == -1)? -1 : result - _buffer.FindIndexOfMax(); // -1 = not ready yet (normal during warmup)
+
+        return (result == -1) ? -1 : result - _buffer.FindIndexOfMax(); // -1 = not ready yet (normal during warmup)
     }
 
     /// <summary>
