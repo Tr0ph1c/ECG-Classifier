@@ -4,7 +4,7 @@ namespace CoreSoftware.PanTompkins;
 
 internal static class NativeSamplsBuffer
 {
-    private const string LibName = "libDetectorPanTompkins.so";
+    private const string LibName = "DetectorPanTompkins";
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr SamplesBuffer_Create(int maxSize);
