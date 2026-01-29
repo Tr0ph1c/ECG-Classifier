@@ -14,5 +14,9 @@
           CopyToOutputDirectory="PreserveNewest"
           Link="libDetectorPanTompkins.so" />
     </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DataStream\" />
+    <Folder Include="Tests\" />
+  </ItemGroup>
 
 </Project>
