@@ -1,0 +1,33 @@
+services:
+  ecg_core_software:
+    container_name: ecg_core_software
+    build:
+      context: ./CoreSoftware/CoreSoftware
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    environment:
+      ASPNETCORE_URLS: http://+:5050
+    networks:
+      - classifier_internal_network
+      - core_software_global_network
+    # depends_on:
+      # - ai-service
+
+  # ai-service:
+  #   container_name: python_ai
+  #   build:
+  #     context: ./python-ai-path
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5000:5000"
+  #   networks:
+  #     - classifier_internal_network
+
+networks:
+  classifier_internal_network:
+    driver: bridge
+    internal: true
+  core_software_global_network:
+    driver: bridge
+    internal: false
