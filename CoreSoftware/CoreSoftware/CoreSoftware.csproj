@@ -17,6 +17,7 @@
   <ItemGroup>
     <Folder Include="DataStream\" />
     <Folder Include="Tests\" />
+    <Folder Include="wwwroot\lib\" />
   </ItemGroup>
 
 </Project>
