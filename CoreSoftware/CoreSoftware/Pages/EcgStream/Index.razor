@@ -1,17 +1,43 @@
 @page "/"
 @page "/Stream"
 
-<h1>@text</h1>
-<button @onclick="HandleClick"> click me </button>
+<PageTitle>ECG Signal</PageTitle>
 
-@code{
-    
-    private string text = "Ahmed Mahmoud";
-    private int counter = 0;
+<h1>ECG Signal Visualization</h1>
 
-    private void HandleClick()
+<BlazorPlot @ref =BlazorPlot Style="width: 400px; height: 300px;" />
+
+<label>File name</label>
+<input type="text" @bind="simFileName"/>
+<button @onclick="StartSimulation">Start Simulation</button>
+
+@code {
+    private const int BUFFERSIZE = 3600; // 10 second buffer on 360 Hz
+
+    BlazorPlot BlazorPlot { get; set; } = new();
+    private CircularBuffer<float> ecgSignal = new(BUFFERSIZE);
+    private Object locker = new();
+    private string simFileName = "";
+
+    public void StartSimulation()
     {
-        text = $"Ahmed Mahmoud ({++counter})";
+        ProducerConsumer.Start(ConsumeSample);
+        // start streaming data from ( simFileName )
+        return;
     }
 
+    public void ConsumeSample(float sample)
+    {
+        ecgSignal.Write(sample);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        double[] dataX = Generate.Consecutive(BUFFERSIZE);
+        float[] dataY = ecgSignal.ToArray();
+
+        BlazorPlot.Plot.Clear();
+        BlazorPlot.Plot.Add.ScatterLine(dataX, dataY);
+        BlazorPlot.Refresh();
+    }
 }
