@@ -6,18 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="runtimes/*/native/*DetectorPanTompkins.*"
-          CopyToOutputDirectory="PreserveNewest" />
-
-
-    <None Include="runtimes/*/native/*DetectorPanTompkins.*"
-          CopyToOutputDirectory="PreserveNewest"
-          Link="libDetectorPanTompkins.so" />
-    </ItemGroup>
+    <None Include="runtimes/**/native/*DetectorPanTompkins.*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
   <ItemGroup>
     <Folder Include="DataStream\" />
     <Folder Include="Tests\" />
     <Folder Include="wwwroot\lib\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ScottPlot.Blazor" Version="5.1.57" />
   </ItemGroup>
 
 </Project>
