@@ -7,7 +7,7 @@ internal static class NativeECGDetector
 {
 #if WINDOWS
     private const string LibName = "libDetectorPanTompkins";
-#elif LINUX
+#else
     private const string LibName = "DetectorPanTompkins";
 #endif
 
