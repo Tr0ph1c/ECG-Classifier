@@ -1,0 +1,18 @@
+@page "/"
+@page "/Stream"
+
+<h1>@counter</h1>
+<button @onclick="@(() => { counter++;})"> click me </button>
+
+@code{
+    
+    private string text = "Ahmed Mahmoud";
+    private int counter = 0;
+
+    private void HandleClick()
+    {
+        // text = $"Ahmed Mahmoud ({++counter})";
+        Console.WriteLine("Clicked");
+    }
+
+}
