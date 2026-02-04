@@ -24,7 +24,7 @@ static class ProducerConsumer
     
     public static void ReadFile(string path)
     {
-        isRunning = false;
+        End();
         dataStream = File.OpenRead(path);
         dataReader = new(dataStream);
     }

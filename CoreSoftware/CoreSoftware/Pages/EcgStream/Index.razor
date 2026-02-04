@@ -5,7 +5,7 @@
 
 <h1>ECG Signal Visualization</h1>
 
-<BlazorPlot @ref =BlazorPlot Style="width: 400px; height: 300px;" />
+<BlazorPlot @ref=BlazorPlot Style="width: 400px; height: 300px;" />
 
 <label>File name</label>
 <input type="text" @bind="simFileName"/>
@@ -18,23 +18,35 @@
     private CircularBuffer<float> ecgSignal = new(BUFFERSIZE);
     private Object locker = new();
     private string simFileName = "";
+    private bool simulating = false;
 
     public void StartSimulation()
     {
+        simulating = true;
+        ProducerConsumer.ReadFile(simFileName);
         ProducerConsumer.Start(ConsumeSample);
-        // start streaming data from ( simFileName )
         return;
+    }
+
+    public void EndSimulation()
+    {
+        simulating = false;
+        ProducerConsumer.End();
     }
 
     public void ConsumeSample(float sample)
     {
-        ecgSignal.Write(sample);
+        lock (locker) ecgSignal.Write(sample);
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
+        if (!simulating) return;
+
         double[] dataX = Generate.Consecutive(BUFFERSIZE);
-        float[] dataY = ecgSignal.ToArray();
+        float[] dataY;
+        
+        lock (locker) dataY = ecgSignal.ToArray();
 
         BlazorPlot.Plot.Clear();
         BlazorPlot.Plot.Add.ScatterLine(dataX, dataY);
