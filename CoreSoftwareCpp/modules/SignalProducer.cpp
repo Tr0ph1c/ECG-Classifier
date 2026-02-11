@@ -67,8 +67,8 @@ void SignalProducer::Start(std::function<void(float)> consumeItem) {
     std::thread producerThread(Produce);
     std::thread consumerThread(Consume, consumeItem);
     
-    producerThread.join();
-    consumerThread.join();
+    producerThread.detach();
+    consumerThread.detach();
 }
 
 void SignalProducer::End() {
