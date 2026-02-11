@@ -1,11 +1,19 @@
 #include <iostream>
-#include "./SignalProducer.h"
+#include "modules/SignalProducer.h"
+#include "gui/gui.hpp"
 
-void printfloat (float f) {
-    printf("%f", f);
+void process (float f) {
+    gui::buffer.push(f);
 }
 
 int main () {
     SignalProducer::ReadFile("./100_raw");
-    SignalProducer::Start(printfloat);
+    SignalProducer::Start(process);
+    gui::init();
+    while (gui::running)
+    {
+        gui::new_frame();
+    }
+    
+    gui::shutdown();
 }
