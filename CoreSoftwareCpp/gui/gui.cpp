@@ -1,6 +1,6 @@
 #include "gui.hpp"
 #include <vector>
-
+#include <iostream>
 
 namespace gui
 {
