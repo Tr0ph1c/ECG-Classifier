@@ -23,18 +23,26 @@ LIBS_DIR = bin/libs
 DEBUG_TARGET = $(BIN_DEBUG_DIR)/Detector
 RELEASE_TARGET = $(BIN_RELEASE_DIR)/Detector
 
-IMPLOT_FLAGS = -L$(LIBS_DIR) -limgui -limplot
+OTHER_DEPENDENCIES_FLAGS = -L$(LIBS_DIR) -limgui -limplot -lpantompkins
+
+ifeq ($(OS),Windows_NT)
+    CP := copy /Y
+    MKDIR := mkdir
+else
+    CP := cp -f
+    MKDIR := mkdir -p
+endif
 
 # =========================================================
 # DIRECTORIES
 # =========================================================
 
 directories:
-	@mkdir -p $(DEBUG_OBJ_DIR)
-	@mkdir -p $(RELEASE_OBJ_DIR)
-	@mkdir -p $(BIN_DEBUG_DIR)
-	@mkdir -p $(BIN_RELEASE_DIR)
-	@mkdir -p $(LIBS_DIR)
+	@$(MKDIR) $(DEBUG_OBJ_DIR)
+	@$(MKDIR) $(RELEASE_OBJ_DIR)
+	@$(MKDIR) $(BIN_DEBUG_DIR)
+	@$(MKDIR) $(BIN_RELEASE_DIR)
+	@$(MKDIR) $(LIBS_DIR)
 
 # Building Dependency files
 # 1. building imgui
@@ -45,7 +53,7 @@ IMGUI_SOURCES = imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_tables.cpp imgu
 IMGUI_OBJECTS = $(patsubst %.cpp, $(DEBUG_OBJ_DIR)/%.o, $(IMGUI_SOURCES))
 
 $(DEBUG_OBJ_DIR)/imgui/%.o: imgui/%.cpp
-	@mkdir -p $(dir $@)
+	@$(MKDIR) $(dir $@)
 	$(CXX) $(CXX_RELEASE_FLAGS) $(INCLUDES) $(SDL_CFLAGS) -c $< -o $@
 
 imgui: $(IMGUI_OBJECTS)
@@ -57,11 +65,18 @@ IMPLOT_SOURCES = implot/implot.cpp implot/implot_items.cpp
 IMPLOT_OBJECTS = $(patsubst %.cpp, $(DEBUG_OBJ_DIR)/%.o, $(IMPLOT_SOURCES))
 
 $(DEBUG_OBJ_DIR)/implot/%.o: implot/%.cpp
-	@mkdir -p $(dir $@)
+	@$(MKDIR) $(dir $@)
 	$(CXX) $(CXX_RELEASE_FLAGS) $(INCLUDES) $(SDL_CFLAGS) -c $< -o $@
 
 implot: $(IMPLOT_OBJECTS) imgui
 	ar rcs $(LIBS_DIR)/libimplot.a $(IMPLOT_OBJECTS)
+
+# 3. building PanTompkins
+
+PanTompkins: Cpp_Ecg_Detectors/**.cpp Cpp_Ecg_Detectors/**.h
+	$(MAKE) -C Cpp_Ecg_Detectors release
+	$(CP) Cpp_Ecg_Detectors/bin/release/libDetectorPanTompkins.a $(LIBS_DIR)/libpantompkins.a
+	
 
 # =========================================================
 # BUILDING TARGETS
@@ -93,12 +108,12 @@ $(RELEASE_OBJ_DIR)/%.o: %.cpp
 	$(CXX) $(CXX_RELEASE_FLAGS) $(INCLUDES) $(SDL_CFLAGS) -c $< -o $@
 
 # Debug build
-all: directories imgui implot $(DEBUG_OBJECTS)
-	$(CXX) $(CXX_DEBUG_FLAGS) -o $(DEBUG_TARGET) $(DEBUG_OBJECTS) $(IMPLOT_FLAGS) $(SDL_LIBS)
+all: directories imgui implot PanTompkins $(DEBUG_OBJECTS) 
+	$(CXX) $(CXX_DEBUG_FLAGS) -o $(DEBUG_TARGET) $(DEBUG_OBJECTS) $(OTHER_DEPENDENCIES_FLAGS) $(SDL_LIBS)
 
 # Release build
-release: directories imgui implot $(RELEASE_OBJECTS)
-	$(CXX) $(CXX_RELEASE_FLAGS) -o $(RELEASE_TARGET) $(RELEASE_OBJECTS) $(IMPLOT_FLAGS) $(SDL_LIBS)
+release: directories imgui implot PanTompkins $(RELEASE_OBJECTS)
+	$(CXX) $(CXX_RELEASE_FLAGS) -o $(RELEASE_TARGET) $(RELEASE_OBJECTS) $(OTHER_DEPENDENCIES_FLAGS) $(SDL_LIBS)
 
 run: all
 	$(DEBUG_TARGET)
