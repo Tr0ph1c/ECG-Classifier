@@ -1,9 +1,15 @@
+OS := $(shell uname)
+
 CXX = g++
 CXX_DEBUG_FLAGS = -std=c++17 -Wall -g -O0 -DDEBUG
 CXX_RELEASE_FLAGS = -std=c++17 -Wall -O3
 
-SDL_CFLAGS = -I/usr/include/SDL2 -D_GNU_SOURCE=1 -D_REENTRANT
-SDL_LIBS   = -lSDL2
+SDL_CFLAGS = -I./include/ -I./include/SDL2 -L$(LIBS_DIR)
+SDL_LIBS =
+ifeq $(OS) Windows_NT
+	SDL_LIBS = -lmingw32 -lSDL2main -lSDL2
+else
+	SDL_LIBS = -lSDL2 
 
 INCLUDES = -Iimgui -Iimgui/backends -Iimplot
 
@@ -87,14 +93,14 @@ $(RELEASE_OBJ_DIR)/%.o: %.cpp
 
 # Debug build
 all: directories imgui implot $(DEBUG_OBJECTS)
-	$(CXX) $(CXX_DEBUG_FLAGS) -o $(DEBUG_TARGET) $(DEBUG_OBJECTS) $(IMPLOT_FLAGS) $(SDL_LIBS) -lGL -ldl
+	$(CXX) $(CXX_DEBUG_FLAGS) -o $(DEBUG_TARGET) $(DEBUG_OBJECTS) $(IMPLOT_FLAGS) $(SDL_LIBS)
 
 # Release build
 release: directories imgui implot $(RELEASE_OBJECTS)
-	$(CXX) $(CXX_RELEASE_FLAGS) -o $(RELEASE_TARGET) $(RELEASE_OBJECTS) $(IMPLOT_FLAGS) $(SDL_LIBS) -lGL -ldl
+	$(CXX) $(CXX_RELEASE_FLAGS) -o $(RELEASE_TARGET) $(RELEASE_OBJECTS) $(IMPLOT_FLAGS) $(SDL_LIBS)
 
 run: all
 	$(DEBUG_TARGET)
 
 clean:
-	rm -rf obj bin
+	rm -rf obj bin/debug bin/release
