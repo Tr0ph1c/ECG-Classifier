@@ -6,10 +6,11 @@ CXX_RELEASE_FLAGS = -std=c++17 -Wall -O3
 
 SDL_CFLAGS = -I./include/ -I./include/SDL2 -L$(LIBS_DIR)
 SDL_LIBS =
-ifeq $(OS) Windows_NT
+ifeq ($(OS), Windows_NT)
 	SDL_LIBS = -lmingw32 -lSDL2main -lSDL2
 else
 	SDL_LIBS = -lSDL2 
+endif
 
 INCLUDES = -Iimgui -Iimgui/backends -Iimplot
 
