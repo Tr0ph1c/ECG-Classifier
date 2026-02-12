@@ -55,7 +55,7 @@ void SignalProducer::ReadFile(const std::string& path) {
         try {
             fullRecording.push_back(std::stof(line));
         } catch (...) {
-            printf("Invalid data line ( %s ) at file ( %s ).", line, path);
+            printf("Invalid data line ( %s ) at file ( %s ).", line.c_str(), path.c_str());
         }
     }
 }
