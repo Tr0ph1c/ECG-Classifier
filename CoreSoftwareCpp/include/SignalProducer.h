@@ -5,6 +5,7 @@
 #include <functional>
 #include <thread>
 
+
 class SignalProducer {
 private:
     // vector because we need a dynamic array (recording size not known beforehand)

@@ -1,4 +1,4 @@
-#include "./SignalProducer.h"
+#include "SignalProducer.h"
 
 std::vector<float> SignalProducer::fullRecording;
 size_t SignalProducer::fullRecIndex = 0;

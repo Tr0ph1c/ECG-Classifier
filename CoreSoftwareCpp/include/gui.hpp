@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../modules/RingBuffer.hpp"
+#include "RingBuffer.hpp"
 
 #include <SDL2/SDL.h>
 

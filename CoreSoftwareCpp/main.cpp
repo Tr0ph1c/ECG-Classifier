@@ -1,14 +1,13 @@
 #include <iostream>
-#include "modules/SignalProducer.h"
-#include "gui/gui.hpp"
+#include "ecgdevicecapture.h"
+#include "gui.hpp"
 
 void process (float f) {
     gui::buffer.push(f);
 }
 
 int main (int argv, char** args) {
-    SignalProducer::ReadFile("./100_raw");
-    SignalProducer::Start(process);
+    ECGDeviceCapture::Start(process);
     gui::init();
     while (gui::running)
     {
@@ -16,4 +15,5 @@ int main (int argv, char** args) {
     }
     
     gui::shutdown();
+    return 0;
 }
