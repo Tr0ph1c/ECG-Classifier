@@ -8,7 +8,7 @@ class RingBuffer
 public:
     RingBuffer(size_t size) : buffer(size), max(size) {}
 
-    void push(float v)
+    void push(double v)
     {
         std::lock_guard<std::mutex> guard(mtx);
         buffer[head] = v;
@@ -17,7 +17,7 @@ public:
             count++;
     }
 
-    void copy(std::vector<float> &out)
+    void copy(std::vector<double> &out)
     {
         std::lock_guard<std::mutex> guard(mtx);
         out.resize(count);
@@ -27,15 +27,26 @@ public:
             out[i] = buffer[idx];
         }
     }
+
+    // Problem: buffer.data() returns a POINTER to the vector not a copy of it. 
+    // double* toArray() {
+    //     return buffer.data();
+    // }
+
     size_t size()
     {
         std::lock_guard<std::mutex> guard(mtx);
         return count;
     }
 
+    // chronological indexing
+    double chronoIndex(const int i) {
+        return buffer[(head + max - count + i) % max];
+    }
+
 private:
     std::mutex mtx;
-    std::vector<float> buffer;
+    std::vector<double> buffer;
     size_t head = 0;
     size_t count = 0;
     size_t max;

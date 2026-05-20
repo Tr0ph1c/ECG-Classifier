@@ -3,6 +3,9 @@
 #include "RingBuffer.hpp"
 
 #include <SDL2/SDL.h>
+#include <vector>
+#include <iostream>
+#include <mutex>
 
 // ImGui
 #include "imgui.h"
@@ -12,12 +15,17 @@
 // ImPlot
 #include "implot.h"
 
+#include "Beat.hpp"
+#include "beatproducer.hpp"
+
 namespace gui
 {
     extern RingBuffer buffer;
     extern bool running;
     void init();
     void shutdown();
+    void SetBeatsList(BeatProducer*);
     void new_frame();
+    void render_beat(Beat);
     void render();
 }

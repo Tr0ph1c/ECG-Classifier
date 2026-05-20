@@ -1,14 +1,13 @@
 #include "gui.hpp"
-#include <vector>
-#include <iostream>
 
 namespace gui
 {
-    RingBuffer buffer(1000);
+    RingBuffer buffer(2000);
     bool running = false;
-    std::vector<float> plotData;
+    std::vector<double> plotData;
     SDL_Renderer *renderer = nullptr;
     SDL_Window *window = nullptr;
+    BeatProducer *beatProducer = nullptr;
 
     void init()
     {
@@ -58,9 +57,13 @@ namespace gui
         SDL_Quit();
     }
 
+    void SetBeatsList(BeatProducer* producer) {
+        beatProducer = producer;
+    }
+
     void new_frame()
     {
-               // ===== Events =====
+        // ===== Events =====
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -77,26 +80,123 @@ namespace gui
         ImGui_ImplSDLRenderer2_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
-
-        // Make ImGui window fill the entire SDL window
+        
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-        ImGui::Begin("Realtime Signal", nullptr,
-                     ImGuiWindowFlags_NoResize |
-                         ImGuiWindowFlags_NoMove |
-                         ImGuiWindowFlags_NoCollapse |
-                         ImGuiWindowFlags_NoTitleBar);
+        // Make ImGui window fill the entire SDL window
+        ImGui::Begin("Dashboard", nullptr,
+                     ImGuiWindowFlags_NoResize
+                         | ImGuiWindowFlags_NoMove
+                         | ImGuiWindowFlags_NoCollapse
+                         /*| ImGuiWindowFlags_NoTitleBar*/);
 
-        if (ImPlot::BeginPlot("ECG Wave", ImVec2(-1, -1)))
+        
+        if (ImGui::BeginTabBar("Tabs")) 
         {
-            if (!plotData.empty())
+            if (ImGui::BeginTabItem("Realtime View")) 
             {
-                ImPlot::PlotLine(
-                    "Signal",
-                    plotData.data(),
-                    plotData.size());
+                if (ImPlot::BeginPlot("ECG Wave", ImVec2(-1, -1))) 
+                {
+                    if (!plotData.empty()) 
+                    {
+                        ImPlot::PlotLine(
+                            "Signal",
+                            plotData.data(),
+                            plotData.size());
+                    }
+
+                    // Feature: Show beat class visually on top of each beat.
+                    // Problem: Couldn't make it sync with the ring buffer.
+                    // Proposed Solution: Probably need to keep track of the whole recording. (RAM Intensive?)
+                    // for (Beat b : beatProducer->detectedBeats) {
+                    //     ImPlot::PlotText(&b.beatClass, b.index, 1.25);
+                    // }
+
+                    ImPlot::EndPlot();
+                }
+
+                ImGui::EndTabItem();
             }
-            ImPlot::EndPlot();
+
+            if (ImGui::BeginTabItem("Beats")) 
+            {
+                std::vector<Beat> beatsCopy;
+
+                {
+                        std::lock_guard<std::mutex> lock(beatProducer->mtx);
+                        beatsCopy = beatProducer->detectedBeats;
+                }
+
+                ImGui::BeginChild("BeatScrollArea", ImVec2(0, 0), true);
+
+                for (const Beat& b : beatsCopy)
+                {
+                    ImGui::PushID(&b);
+
+                    // Visual block for each beat
+                    ImGui::BeginChild("BeatBlock", ImVec2(0, 140), true);
+
+                    // Mini plot for beat's data
+                    if (ImPlot::BeginPlot("##", ImVec2(250, 120), ImPlotFlags_NoLegend))
+                    {
+                        ImPlot::SetupAxes(nullptr, nullptr,
+                            ImPlotAxisFlags_NoTickLabels,
+                            ImPlotAxisFlags_NoTickLabels);
+
+                        ImPlot::PlotLine(
+                            "",
+                            b.samples.data(),
+                            beatProducer->beatsize
+                        );
+
+                        ImPlot::EndPlot();
+                    }
+
+                    ImGui::SameLine();
+
+                    // Beat's class
+                    ImGui::BeginGroup();
+
+                    ImGui::Text("Class:");
+                    ImGui::Text("%c", (char)b.beatClass);
+
+                    ImGui::Spacing();
+
+                    ImGui::EndGroup();
+
+                    ImGui::EndChild();
+
+                    ImGui::Spacing();
+
+                    ImGui::PopID();
+                }
+
+                ImGui::EndChild();
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Full Recording View")) 
+            {
+                if (ImPlot::BeginPlot("ECG Wave", ImVec2(-1, -1))) 
+                {
+                    if (!plotData.empty()) 
+                    {
+                        ImPlot::PlotLine(
+                            "Signal",
+                            plotData.data(),
+                            plotData.size());
+                    }
+
+                    // TODO: Show beat class visually on top of each beat (with color maybe).
+
+                    ImPlot::EndPlot();
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
         }
 
         ImGui::End();
@@ -107,7 +207,6 @@ namespace gui
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // IMPORTANT: New API requires renderer param
         ImGui_ImplSDLRenderer2_RenderDrawData(
             ImGui::GetDrawData(),
             renderer);
@@ -115,5 +214,4 @@ namespace gui
         SDL_RenderPresent(renderer);
         SDL_Delay(10);
     }
-
 }

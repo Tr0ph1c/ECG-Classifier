@@ -30,7 +30,7 @@ void Produce() {
     deviceConfig = ma_device_config_init(ma_device_type_capture);
     deviceConfig.capture.format   = ma_format_f32;
     deviceConfig.capture.channels = 0;
-    deviceConfig.sampleRate       = 0;
+    deviceConfig.sampleRate       = 360;
     deviceConfig.dataCallback     = data_callback;
 
     result = ma_device_init(NULL, &deviceConfig, &device);

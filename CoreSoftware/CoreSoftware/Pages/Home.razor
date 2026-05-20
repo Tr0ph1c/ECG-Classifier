@@ -1,0 +1,63 @@
+﻿@page "/"
+
+<h1>ECG Signal Visualization</h1>
+
+<BlazorPlot @ref=BlazorPlot Style="width: 400px; height: 300px;" />
+
+<label>File name</label>
+<input type="text" @bind="simFileName" />
+<button @onclick="StartSimulation">Start Simulation</button>
+
+@code {
+    private const int BUFFERSIZE = 3600; // 10 second buffer on 360 Hz
+
+    BlazorPlot BlazorPlot { get; set; } = new();
+    private CircularBuffer<float> ecgSignal = new(BUFFERSIZE);
+    private Object locker = new();
+    private string simFileName = "";
+    private bool simulating = false;
+    private BeatProducer beatProducer = new(360d);
+
+    public void StartSimulation()
+    {
+        simulating = true;
+        beatProducer.NewBeatProduced += OnBeatProduced;
+        ProducerConsumer.ReadFile(simFileName);
+        ProducerConsumer.Start(ConsumeSample);
+        return;
+    }
+
+    public void OnBeatProduced(Object o, NewBeatProducedEventArgs args)
+    {
+        // send beat features to classifier
+        char inferredClass = 'N';
+
+        Console.WriteLine(args.Beat.RIndex);
+    }
+
+    public void EndSimulation()
+    {
+        simulating = false;
+        ProducerConsumer.End();
+    }
+
+    public void ConsumeSample(float sample)
+    {
+        lock (locker) ecgSignal.Write(sample);
+        beatProducer.ProcessSample(sample);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!simulating) return;
+
+        double[] dataX = Generate.Consecutive(BUFFERSIZE);
+        float[] dataY;
+
+        lock (locker) dataY = ecgSignal.ToArray();
+
+        BlazorPlot.Plot.Clear();
+        BlazorPlot.Plot.Add.ScatterLine(dataX, dataY);
+        BlazorPlot.Refresh();
+    }
+}
