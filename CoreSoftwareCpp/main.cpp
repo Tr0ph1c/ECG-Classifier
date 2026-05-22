@@ -11,7 +11,8 @@ void hint () {
 }
 
 void process (float f) {
-    gui::buffer.push(f);
+    //gui::buffer.push(f);
+    gui::plotData.push_back(f);
     beatProducer.process(f);
 }
 

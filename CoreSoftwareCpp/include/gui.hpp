@@ -20,7 +20,7 @@
 
 namespace gui
 {
-    extern RingBuffer buffer;
+    extern std::vector<double> plotData;
     extern bool running;
     void init();
     void shutdown();

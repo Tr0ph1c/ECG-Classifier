@@ -2,7 +2,7 @@
 
 namespace gui
 {
-    RingBuffer buffer(2000);
+    //RingBuffer buffer(2000);
     bool running = false;
     std::vector<double> plotData;
     SDL_Renderer *renderer = nullptr;
@@ -74,7 +74,7 @@ namespace gui
         }
 
         // ===== Copy data from ring buffer (thread-safe) =====
-        buffer.copy(plotData);
+        //buffer.copy(plotData);
 
         // ===== ImGui Frame =====
         ImGui_ImplSDLRenderer2_NewFrame();
@@ -93,7 +93,7 @@ namespace gui
         
         if (ImGui::BeginTabBar("Tabs")) 
         {
-            if (ImGui::BeginTabItem("Realtime View")) 
+            if (ImGui::BeginTabItem("Full Recording View")) 
             {
                 if (ImPlot::BeginPlot("ECG Wave", ImVec2(-1, -1))) 
                 {
@@ -105,12 +105,10 @@ namespace gui
                             plotData.size());
                     }
 
-                    // Feature: Show beat class visually on top of each beat.
-                    // Problem: Couldn't make it sync with the ring buffer.
-                    // Proposed Solution: Probably need to keep track of the whole recording. (RAM Intensive?)
-                    // for (Beat b : beatProducer->detectedBeats) {
-                    //     ImPlot::PlotText(&b.beatClass, b.index, 1.25);
-                    // }
+                    // Show beat class visually on top of each beat.
+                    for (Beat b : beatProducer->detectedBeats) {
+                        ImPlot::PlotText(&b.beatClass, b.index, 1.25);
+                    }
 
                     ImPlot::EndPlot();
                 }
@@ -126,6 +124,9 @@ namespace gui
                         std::lock_guard<std::mutex> lock(beatProducer->mtx);
                         beatsCopy = beatProducer->detectedBeats;
                 }
+
+                // TODO: Add percentage of "Non Normal" beats as a statistic on top 
+                //ImGui::Text("Normal Beats: %d", beatsCopy.)
 
                 ImGui::BeginChild("BeatScrollArea", ImVec2(0, 0), true);
 
@@ -172,26 +173,6 @@ namespace gui
                 }
 
                 ImGui::EndChild();
-
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Full Recording View")) 
-            {
-                if (ImPlot::BeginPlot("ECG Wave", ImVec2(-1, -1))) 
-                {
-                    if (!plotData.empty()) 
-                    {
-                        ImPlot::PlotLine(
-                            "Signal",
-                            plotData.data(),
-                            plotData.size());
-                    }
-
-                    // TODO: Show beat class visually on top of each beat (with color maybe).
-
-                    ImPlot::EndPlot();
-                }
 
                 ImGui::EndTabItem();
             }
