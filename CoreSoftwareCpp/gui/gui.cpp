@@ -107,7 +107,8 @@ namespace gui
 
                     // Show beat class visually on top of each beat.
                     for (Beat b : beatProducer->detectedBeats) {
-                        ImPlot::PlotText(&b.beatClass, b.index, 1.25);
+                        char buffer[2] = {b.beatClass, '\0'};
+                        ImPlot::PlotText(buffer, b.index, 1.25);
                     }
 
                     ImPlot::EndPlot();

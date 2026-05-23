@@ -1,12 +1,13 @@
 #include "DetectorPanTompkins/realtime/DetectorPanTompkins.h"
 #include "beatproducer.hpp"
     
-BeatProducer::BeatProducer(double fs)
+BeatProducer::BeatProducer(double fs, HANDLE* _pipe)
 {
     newR = -1;
     oldR = -1;
     processedSamples = 0;
-    iterationsToProduce = -1;
+
+    pipe = _pipe;
 }
 
 void BeatProducer::process(double sample)
@@ -36,9 +37,54 @@ void BeatProducer::ProduceNewBeat()
     samplesBuffer.copy(beat.samples);
     beat.rrInterval = newR - oldR;
     beat.index = newR;
+    
+    // build the features vector
+    std::vector<double> features(beatsize + 1);
+    features = beat.samples;
+    features.back() = beat.rrInterval;
 
-    // send beat to be classified
-    beat.beatClass = 'N'; // temporary N classification on all beats
+    beat.beatClass = ClassifyBeat(features);
 
     detectedBeats.push_back(beat);
+}
+
+char BeatProducer::ClassifyBeat(std::vector<double> features)
+{
+    // send features length
+    
+    DWORD bytesWritten;
+    unsigned int signalLength = static_cast<unsigned int>(features.size());
+
+    WriteFile(
+        *pipe,
+        &signalLength,
+        sizeof(signalLength),
+        &bytesWritten,
+        NULL
+    );
+
+    // send signal
+
+    WriteFile(
+        *pipe,
+        features.data(),
+        signalLength * sizeof(float),
+        &bytesWritten,
+        NULL
+    );
+
+    // receive classification
+
+    char buffer[8] = {};
+    DWORD bytesRead;
+
+    ReadFile(
+        *pipe,
+        buffer,
+        sizeof(buffer) - 1,
+        &bytesRead,
+        NULL
+    );
+
+    return buffer[0];
 }
