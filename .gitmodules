@@ -7,3 +7,6 @@
 [submodule "CoreSoftwareCpp/Cpp_Ecg_Detectors"]
 	path = CoreSoftwareCpp/Cpp_Ecg_Detectors
 	url = https://github.com/ahmniab/Cpp_Ecg_Detectors.git
+[submodule "ECG_Model_Integration"]
+	path = ECG_Model_Integration
+	url = https://github.com/Omar3wwad/ECG_Model_Integration
